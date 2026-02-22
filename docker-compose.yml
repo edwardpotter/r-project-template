@@ -1,0 +1,93 @@
+# =============================================================================
+# Docker Compose — R Project Dev Environment
+#
+# Services:
+#   r-dev     : Main R development container (always on)
+#   shiny     : Shiny web app server (optional — uncomment to enable)
+#   postgres  : PostgreSQL database (optional — uncomment to enable)
+# =============================================================================
+
+name: ${COMPOSE_PROJECT_NAME:-r-project}
+
+services:
+  # ---------------------------------------------------------------------------
+  # R Development Container
+  # Used by VSCode devcontainer AND for running scripts
+  # ---------------------------------------------------------------------------
+  r-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        R_VERSION: "4.4.1"
+    container_name: ${COMPOSE_PROJECT_NAME:-r-project}-r-dev
+    volumes:
+      # Mount project files (live editing)
+      - .:/project
+      # Persist renv cache across rebuilds
+      - renv-cache:/renv/cache
+    environment:
+      - RENV_PATHS_CACHE=/renv/cache
+      # -- Postgres connection (available when postgres service is running) --
+      # - PGHOST=postgres
+      # - PGPORT=5432
+      # - PGDATABASE=${POSTGRES_DB:-r_project_db}
+      # - PGUSER=${POSTGRES_USER:-r_user}
+      # - PGPASSWORD=${POSTGRES_PASSWORD:-changeme}
+    ports:
+      # Shiny dev server (when running interactively)
+      - "${SHINY_PORT:-3838}:3838"
+    stdin_open: true
+    tty: true
+    command: ["R"]
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Shiny Server (standalone — for when you want a persistent app server)
+  # Uncomment this block when ready to serve a Shiny app
+  # ---------------------------------------------------------------------------
+  # shiny:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: ${COMPOSE_PROJECT_NAME:-r-project}-shiny
+  #   volumes:
+  #     - .:/project
+  #     - renv-cache:/renv/cache
+  #   environment:
+  #     - RENV_PATHS_CACHE=/renv/cache
+  #   ports:
+  #     - "${SHINY_PORT:-3838}:3838"
+  #   command: ["R", "-e", "shiny::runApp('/project/R/shiny', host='0.0.0.0', port=3838)"]
+  #   depends_on:
+  #     - r-dev
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # Uncomment this block when your project needs a database
+  # ---------------------------------------------------------------------------
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: ${COMPOSE_PROJECT_NAME:-r-project}-postgres
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB:-r_project_db}
+  #     POSTGRES_USER: ${POSTGRES_USER:-r_user}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+  #   ports:
+  #     - "${POSTGRES_PORT:-5432}:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #     - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-r_user}"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+volumes:
+  renv-cache:
+    name: ${COMPOSE_PROJECT_NAME:-r-project}-renv-cache
+  # pgdata:
+  #   name: ${COMPOSE_PROJECT_NAME:-r-project}-pgdata

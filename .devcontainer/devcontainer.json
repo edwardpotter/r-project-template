@@ -1,0 +1,52 @@
+{
+  "name": "R Project Dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "r-dev",
+  "workspaceFolder": "/project",
+
+  // VSCode extensions to install inside the container
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r",
+        "REditorSupport.r-lsp",
+        "RDebugger.r-debugger",
+        "quarto-dev.quarto",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "GitHub.vscode-pull-request-github"
+      ],
+      "settings": {
+        // R language server
+        "r.rterm.linux": "/usr/local/bin/R",
+        "r.bracketedPaste": true,
+        "r.plot.useHttpgd": true,
+        "r.lsp.diagnostics": true,
+
+        // Editor defaults
+        "editor.formatOnSave": false,
+        "editor.rulers": [80, 120],
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  // Run after container is created (first time only)
+  "postCreateCommand": "R -e \"renv::restore(prompt = FALSE)\"",
+
+  // Forward ports for Shiny
+  "forwardPorts": [3838, 5432],
+  "portsAttributes": {
+    "3838": { "label": "Shiny App", "onAutoForward": "notify" },
+    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" }
+  },
+
+  // Features — add more as needed
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  }
+}

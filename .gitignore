@@ -1,0 +1,49 @@
+# =============================================================================
+# .gitignore — R Project Template
+# =============================================================================
+
+# -- R / renv -----------------------------------------------------------------
+.Rhistory
+.Rdata
+.RData
+.Ruserdata
+renv/library/
+renv/staging/
+renv/cellar/
+renv/local/
+renv/lock/
+renv/python/
+renv/sandbox/
+
+# -- Data (keep structure, ignore large files) --------------------------------
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/raw/template_example_sensor_data.csv
+
+# -- Output (regenerable) ----------------------------------------------------
+output/figures/*
+output/reports/*
+!output/figures/.gitkeep
+!output/reports/.gitkeep
+
+# -- Docker -------------------------------------------------------------------
+# Don't ignore Dockerfile or compose, but ignore local overrides
+docker-compose.override.yml
+
+# -- Environment / secrets ----------------------------------------------------
+.env
+.env.local
+*.pem
+*.key
+
+# -- OS -----------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -- IDE ----------------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.Rproj.user/
