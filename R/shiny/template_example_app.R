@@ -15,22 +15,49 @@ library(ggplot2)
 library(dplyr)
 library(readr)
 
+# -- Find project root ---------------------------------------------------------
+# Shiny's runApp() may set the working directory to the app file's directory
+# (e.g., R/shiny/), so we detect the project root by looking for data/raw/.
+find_project_root <- function() {
+  candidates <- c(
+    getwd(),                                           # already at project root
+    normalizePath(file.path(getwd(), "..", ".."), mustWork = FALSE),  # R/shiny/ → project
+    "/project"                                         # Docker container default
+  )
+  for (dir in candidates) {
+    if (file.exists(file.path(dir, "data", "raw"))) return(dir)
+  }
+  stop("Cannot find project root (looked for data/raw/ directory)")
+}
+
+proj_root <- find_project_root()
+message(sprintf("Project root: %s", proj_root))
+
+# -- Column types (explicit to avoid readr guessing warnings) -----------------
+sensor_col_types <- cols(
+  date         = col_date(),
+  sensor_id    = col_character(),
+  location     = col_character(),
+  temp_celsius = col_double(),
+  humidity_pct = col_double(),
+  battery_pct  = col_integer(),
+  status       = col_character()
+)
+
 # -- Load data ----------------------------------------------------------------
 # Try processed first, fall back to raw
 load_sensor_data <- function() {
-  processed_path <- "data/processed/template_example_sensors_clean.csv"
-  raw_path <- "data/raw/template_example_sensor_data.csv"
+  processed_path <- file.path(proj_root, "data", "processed", "template_example_sensors_clean.csv")
+  raw_path <- file.path(proj_root, "data", "raw", "template_example_sensor_data.csv")
 
   if (file.exists(processed_path)) {
-    df <- read_csv(processed_path, show_col_types = FALSE)
+    df <- read_csv(processed_path, col_types = sensor_col_types)
+    # Ensure date is Date type (processed CSV might lose type info)
+    df$date <- as.Date(df$date)
     message("Loaded processed data")
   } else if (file.exists(raw_path)) {
-    df <- read_csv(raw_path, show_col_types = FALSE) |>
-      mutate(
-        date = as.Date(date),
-        status = if_else(status == "" | is.na(status), "unknown", status),
-        is_healthy = status == "ok" & battery_pct > 20
-      )
+    df <- read_csv(raw_path, col_types = sensor_col_types) |>
+      mutate(is_healthy = status == "ok" & battery_pct > 20)
     message("Loaded raw data (run analysis script first for cleaned version)")
   } else {
     stop("No sensor data found. Is this a fresh project from the template?")

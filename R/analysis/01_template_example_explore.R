@@ -23,18 +23,13 @@ source("R/functions/helpers.R")
 
 # -- 1. Load raw data ---------------------------------------------------------
 message("Loading raw sensor data...")
-sensors <- load_raw_csv("template_example_sensor_data.csv")
+sensors <- load_raw_csv("template_example_sensor_data.csv", col_types = SENSOR_COL_TYPES)
 quick_summary(sensors)
 
 # -- 2. Clean & transform -----------------------------------------------------
 message("Cleaning data...")
 
 sensors_clean <- sensors |>
-  # Parse date
-
-  mutate(date = as.Date(date)) |>
-  # Fix empty status → "unknown"
-  mutate(status = if_else(status == "" | is.na(status), "unknown", status)) |>
   # Remove rows with extreme values (likely sensor errors)
   filter(
     temp_celsius > -10 & temp_celsius < 50,
@@ -74,7 +69,8 @@ message("Generating figures...")
 # Plot 1: Temperature over time by location
 p1 <- sensors_clean |>
   group_by(date, location) |>
-  summarise(avg_temp = mean(temp_celsius), .groups = "drop") |>
+  summarise(avg_temp = mean(temp_celsius, na.rm = TRUE), .groups = "drop") |>
+  filter(!is.na(avg_temp)) |>
   ggplot(aes(x = date, y = avg_temp, color = location)) +
   geom_line(alpha = 0.7) +
   geom_smooth(method = "loess", se = FALSE, linewidth = 1.2) +

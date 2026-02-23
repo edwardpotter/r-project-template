@@ -35,6 +35,9 @@ cd ~/projects/my-analysis-project
 # Build the Docker image
 make build
 
+# Install R packages (first time only — updates renv.lock)
+make setup
+
 # Run the smoke test to verify everything works
 make smoke-test
 
@@ -45,6 +48,9 @@ make shiny
 # Once verified, clean out the example files and start your real work
 make clean-example
 ```
+
+> **Note:** `make smoke-test` will auto-detect missing packages and run `make setup` for you,
+> so you can skip straight to `make smoke-test` if you prefer.
 
 ### Open in VSCode
 
@@ -113,7 +119,8 @@ make test
 ├── docker/
 │   └── init-db.sql         # Postgres initialization (optional)
 ├── scripts/
-│   └── new-project.sh      # Create new projects from template
+│   ├── new-project.sh                     # Create new projects from template
+│   └── template_example_setup.R           # Package installer for smoke test
 ├── .Rprofile               # R session config (loads renv + project settings)
 ├── .env.example            # Environment variable template
 ├── .gitignore
@@ -125,10 +132,10 @@ make test
 
 ## Smoke Test (Template Example)
 
-Every new project includes a built-in smoke test that exercises the full pipeline: data loading, cleaning, visualization, Shiny, and tests. All example files are prefixed with `template_example_` so they're easy to identify and remove.
+Every new project includes a built-in smoke test that exercises the full pipeline: package installation, data loading, cleaning, visualization, Shiny, and tests. All example files are prefixed with `template_example_` so they're easy to identify and remove.
 
 ```bash
-# Run the full pipeline
+# Install packages and run the full pipeline (auto-detects if setup is needed)
 make smoke-test
 
 # Launch the interactive dashboard
@@ -163,6 +170,7 @@ The smoke test validates: CSV loading from `data/raw/`, data cleaning and transf
 | Command | Description |
 |---------|-------------|
 | `make build` | Build the Docker image |
+| `make setup` | Install R packages and snapshot renv.lock |
 | `make up` | Start containers (detached) |
 | `make down` | Stop containers |
 | `make clean` | Remove containers, volumes, and images |

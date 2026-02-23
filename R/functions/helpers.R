@@ -3,6 +3,19 @@
 # Source this file or use box::use() in your analysis scripts
 # =============================================================================
 
+# -- Column types for the template_example sensor data ------------------------
+# Used by analysis scripts, tests, and Shiny app to avoid readr type guessing.
+# Delete this when you remove the template_example files.
+SENSOR_COL_TYPES <- readr::cols(
+  date         = readr::col_date(),
+  sensor_id    = readr::col_character(),
+  location     = readr::col_character(),
+  temp_celsius = readr::col_double(),
+  humidity_pct = readr::col_double(),
+  battery_pct  = readr::col_integer(),
+  status       = readr::col_character()
+)
+
 #' Load and clean a CSV from the raw data directory
 #'
 #' @param filename Name of the CSV file (in data/raw/)

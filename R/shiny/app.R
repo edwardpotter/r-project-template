@@ -1,11 +1,27 @@
 # =============================================================================
 # Shiny App — Starter Template
-# Run with: shiny::runApp("R/shiny")
+# Run with: make shiny APP_FILE=app.R
 # Or via docker-compose (uncomment the shiny service)
 # =============================================================================
 
 library(shiny)
 library(ggplot2)
+
+# -- Find project root ---------------------------------------------------------
+# Shiny's runApp() may change the working directory to the app file's directory.
+# This helper finds the project root so you can use file.path(proj_root, ...).
+find_project_root <- function() {
+  candidates <- c(
+    getwd(),
+    normalizePath(file.path(getwd(), "..", ".."), mustWork = FALSE),
+    "/project"
+  )
+  for (dir in candidates) {
+    if (file.exists(file.path(dir, "data", "raw"))) return(dir)
+  }
+  stop("Cannot find project root (looked for data/raw/ directory)")
+}
+proj_root <- find_project_root()
 
 # -- UI -----------------------------------------------------------------------
 ui <- fluidPage(
